@@ -1,8 +1,9 @@
 import pandas as pd
 import streamlit as st
-import scikit_learn
+import sklearn
 import base64
 import pickle
+from pandas import MultiIndex, Int64Index
 from urllib.request import urlopen, Request
 st.set_page_config(page_title="BANDORA LOAN APPROVAL WEBAPP", page_icon="random", layout="wide", initial_sidebar_state="expanded")
 
