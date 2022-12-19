@@ -5,4 +5,4 @@ numpy==1.22.4
 altair
 pickle-mixin==1.0.2
 streamlit-option-menu==0.3.2
-protobuf==3.18.1
+protobuf==4.21.6
