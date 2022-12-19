@@ -1,8 +1,6 @@
 import pandas as pd
 import streamlit as st
-import joblib
-import sklearn
-import time
+import scikit_learn
 import base64
 import pickle
 from urllib.request import urlopen, Request
