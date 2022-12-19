@@ -25,7 +25,7 @@ def add_bg_from_local(image_file):
 #app background
 add_bg_from_local('bckg.jpg')
 
-classifier_pipeline = joblib.load('RFC_pipeline_FINAL.joblib')
+classifier_pipeline = pickle.load(open('classifier_gboost_pipeline.pkl','rb'))
 
 
 Regressor_pipeline = pickle.load(open('regression_xgboost_pipeline.pkl','rb'))
