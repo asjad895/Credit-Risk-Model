@@ -2,9 +2,9 @@ import pandas as pd
 import streamlit as st
 import sklearn
 import base64
+import time
 import pickle
-from pandas import MultiIndex, Int64Index
-from urllib.request import urlopen, Request
+import urllib.request
 st.set_page_config(page_title="BANDORA LOAN APPROVAL WEBAPP", page_icon="random", layout="wide", initial_sidebar_state="expanded")
 
 def add_bg_from_local(image_file):
@@ -21,17 +21,19 @@ def add_bg_from_local(image_file):
     """,
     unsafe_allow_html=True
     )
-#app background
+
+
+# app background
 add_bg_from_local('bckg.jpg')
 
-classifier_pipeline = pickle.load(open('classifier_gboost_pipeline.pkl','rb'))
+classifier_pipeline = pickle.load(open('classifier_gboost_pipeline.pkl', 'rb'))
 
 
-Regressor_pipeline = pickle.load(open('regression_xgboost_pipeline.pkl','rb'))
+Regressor_pipeline = pickle.load(open('regression_xgboost_pipeline.pkl', 'rb'))
 @st.experimental_memo
 def create_input_Dataframe():
     input_dictionary = {
-        "LanguageCode": Language,
+        "LanguageCode": LanguageCode,
         "HomeOwnershipType": HomeOwnershipType,
         "Restructured": Restructured,
         "IncomeTotal": IncomeTotal,
@@ -48,24 +50,31 @@ def create_input_Dataframe():
         "InterestAndPenaltyPaymentsMade": InterestAndPenaltyPaymentsMade,
         "PrincipalBalance": PrincipalBalance,
         "InterestAndPenaltyBalance": InterestAndPenaltyBalance,
-        "Bids": BidsPortfolioManger + BidsApi,
+        "Bids": BidsPortfolioManager + BidsApi,
         "Rating": Rating
     }
 
     DF = pd.DataFrame(input_dictionary, index=[0])
     return DF
-
-
 def Classifier():
+    global result
     input = create_input_Dataframe()
     prediction = classifier_pipeline.predict(input)
     if prediction == 1:
         result = "Defaulter"
-        Default=1
     if prediction == 0:
         result = "Not Defaulter"
-        Default=0
     return result
+
+def default():
+    d = Classifier()
+    if d == 1:
+        default = 1
+    else:
+        default = 0
+    return default
+
+
 @st.experimental_memo
 def create_regression_input():
     regr_dict={
@@ -110,65 +119,67 @@ def create_regression_input():
         "Rating": Rating,
         "Restructured": Restructured,
         "CreditScoreEsMicroL":CreditScoreEsMicroL,
-        "Default":Default,
+        "Default":Default
         #numerical data
 
     }
     DF_reg = pd.DataFrame(regr_dict, index=[0])
     return DF_reg
-#regression model using
+
+
+Default = default()
+
+
+# regression model using
 def Regressor():
-    input = create_regression_input()
-    prediction = Regression_pipeline.predict(input)
+    inputs = create_regression_input()
+    prediction = Regressor_pipeline.predict(inputs)
     Result=pd.DataFrame({"EMI":None,"ELA":None,"ROI":None})
     Result['EMI']=prediction[0]
     Result['ELA']=prediction[1]
     Result['ROI']=prediction[2]
     return Result
-#getting user filled data
+
+
+# getting user filled data
 @st.experimental_memo
 def load_data():
-    df=create_regression_input()
-    return df
+    dfs=create_regression_input()
+    return dfs
 
 
-#APP LAYOUT
+# APP LAYOUT
 st.title('Bandora Loan Approval Dashboard')
 st.header("Borrower's Information")
-op1=st.button(label="Personal Details")
-if(op1):
+op1 = st.button(label="Personal Details")
+if op1:
     st.subheader('Personal Background')
-    EmploymentDurationCurrentEmployer = st.selectbox('EmploymentDurationCurrentEmployer', (
-    "MoreThan5Years", "UpTo1Year", "UpTo5Years", "UpTo3Years", "UpTo4Years", "Other", "TrialPeriod"))
+    EmploymentDurationCurrentEmployer = st.selectbox('EmploymentDurationCurrentEmployer', ("MoreThan5Years", "UpTo1Year", "UpTo5Years", "UpTo3Years", "UpTo4Years", "Other", "TrialPeriod"))
     LanguageCode = st.selectbox('Language',
-                                ("estonia","Finish","spanish","other"))
-    HomeOwnershipType = st.selectbox('Home Ownership Type', (
-    "homeless", "Owner", "other", "Tenant_pre-furnished property", "Living with parents",
-    "Mortgage", "Tenant_unfurnished propert", "other", "Joint ownership", "Joint tenant",
-    "Council house", "Owner with encumbrance"))
+                                ("estonia", "Finish", "spanish" , "other"))
+    HomeOwnershipType = st.selectbox('Home Ownership Type', ("homeless", "Owner", "other","Tenant_pre-furnished property", "Living with parents","Mortgage", "Tenant_unfurnished property", "other", "Joint ownership", "Joint tenant", "Council house", "Owner with encumbrance"))
     Gender = st.selectbox('Gender', ("Male", "Woman", "Undefined"))
-    Education = st.selectbox('Education', (
-    "Basic education", "Primary education", "Vocational education", "Higher education", "other", "Secondary education"))
+    Education = st.selectbox('Education', ("Basic education", "Primary education", "Vocational education", "Higher education", "other", "Secondary education"))
     MaritalStatus = st.selectbox('MaritalStatus', ("Married", "Cohabitant", "Single", "Divorced", "Widow", "other"))
     IncomeTotal = st.number_input('Total Icome')
     LiabilitiesTotal = st.number_input('Total Liabilities')
-    EmploymentStatus = st.selectbox('EmploymentStatus', (
-    "Fully employed", "Self-employed_Entrepreneur_Retiree", "Unemployed_Partially employed"))
-    OccupationArea = st.selectbox('OccupationArea', (
-    "Other", "Mining", "Processing", "Energy", "Utilities", "Construction", "Retail and wholesale",
-    "Transport and warehousing",
-    "Hospitality and catering", "Info and telecom", "Finance and insurance", "Real-estate", "Research", "Administrative"
-    , "Civil service & military", "Education", "Healthcare and social help", "Art and entertainment",
-    "Agriculture,forestry and fishing"))
+    EmploymentStatus = st.selectbox('EmploymentStatus', ("Fully employed", "Self-employed_Entrepreneur_Retiree",
+                                                         "Unemployed_Partially employed"))
+    OccupationArea = st.selectbox('OccupationArea', ("Other", "Mining", "Processing", "Energy", "Utilities", "Construction",
+                                                     "Retail and wholesale","Transport and warehousing",
+                                                     "Hospitality and catering", "Info and telecom", "Finance and insurance",
+                                                     "Real-estate", "Research", "Administrative"
+                                                    ,"Civil service & military", "Education", "Healthcare and social help",
+                                                     "Art and entertainment",
+                                                     "Agriculture,forestry and fishing"))
     RefinanceLiabilities = st.number_input('Refinance Liabilities')
-    FreeCash = st.number_input('Free Cash')
+    Freecash = st.number_input('Free Cash')
     ExistingLiabilities = st.number_input('Existing Liabilities')
     DebtToIncome = st.number_input('DebtToIncome')
+    Age = st.number_input('Age')
 
-
-
-op2=st.button(label="Loan Details")
-if(op2):
+op2 = st.button(label="LoanDetails")
+if op2:
     st.subheader('Loan Details')
     NewCreditCustomer = st.selectbox('NewCreditCustomer', ("True", "False"))
     LoanDuration = st.number_input('Loan Duration (in months)')
@@ -177,11 +188,9 @@ if(op2):
     Interest = st.number_input('Interest')
     EMI = st.number_input('Equated Monthly Installment')
     RecoveryStage = st.selectbox('RecoveryStage', ("Collection", "Recovery"))
-    UseOfLoan = st.selectbox('UseOfLoan', (
-    "other", "Home improvement", "Loan consolidation", "Vehicle", "Travel", "Business", "Education", "Any"))
-    VerificationType = st.selectbox('VerificationType', (
-    "Not set", "Income unverified", "Income unverified cross-referenced by phone", "Income verified",
-    "Income and expenses verified"))
+    UseOfLoan = st.selectbox('UseOfLoan', ("other", "Home improvement", "Loan consolidation", "Vehicle", "Travel", "Business", "Education", "Any"))
+    VerificationType = st.selectbox('VerificationType', ("Not set", "Income unverified", "Income unverified cross-referenced by phone",
+                                                         "Income verified","Income and expenses verified"))
     CreditScoreEsMicroL = st.selectbox('CreditScoreEsMicroL',
                                        ("M", "M3", "M5", "M1", "M9", "M2", "M6", "M4", "M8", "M7", "M10"))
     NoOfPreviousLoansBeforeLoan = st.number_input('No Of Previous Loans Before Loan')
@@ -190,26 +199,27 @@ if(op2):
     PreviousEarlyRepaymentsCountBeforeLoan = st.number_input('PreviousEarlyRepaymentsCountBeforeLoan')
     Restructured = st.selectbox('Restructured', ("False", "True"))
 
-op3=st.button(label="PaymentofPreviousLoan")
-if(op3):
+op3 = st.button(label="PaymentofPreviousLoan")
+if op3:
     st.subheader('Payment Details')
     PreviousRepaymentsBeforeLoan = st.number_input('PreviousRepaymentsBeforeLoan')
     MonthlyPaymentDay = st.number_input('MonthlyPaymentDay (digit)')
+    MonthlyPayment = st.number_input('Monthly Payment')
     PrincipalPaymentsMade = st.number_input('Principal Payments Made')
     InterestAndPenaltyPaymentsMade = st.number_input('Interest and Penalty Payments Made')
 
 op4=st.button(label="YourBalance")
-if(op4):
+if op4:
     st.subheader('Balance Details')
     PrincipalBalance = st.number_input('PrincipalBalance')
     InterestAndPenaltyBalance = st.number_input('InterestAndPenaltyBalance')
     st.subheader('Amount of Investment offers made via')
-    BidsPortfolioManger = st.number_input('Bids through PortfolioManger')
+    BidsPortfolioManager = st.number_input('Bids through PortfolioManger')
     BidsApi = st.number_input('Bids using Api')
     BidsManual = st.number_input('Bids by Manual')
 
 opt5=st.button(label='OTHER')
-if(opt5):
+if opt5:
     st.subheader('Other')
     Rating = st.selectbox('Rating', ("A", "AA", "B", "C", "D", "E", "F", "HR"))
 
@@ -236,14 +246,11 @@ if st.button(label="Check Status"):
             time.sleep(5)
             result = Regressor()
             st.dataframe(result, use_container_width=st.session_state.use_container_width)
-            st.balloons()
-
-
-
+        st.balloons()
 
 
 op6=st.button(label="your given detail(want to see)")
-if(op6):
+if op6:
     st.checkbox("Use container width", value=False, key="use_container_width")
 
     df = load_data()
@@ -251,4 +258,4 @@ if(op6):
     # Display the dataframe and allow the user to stretch the dataframe
     # across the full width of the container, based on the checkbox value
     st.dataframe(df, use_container_width=st.session_state.use_container_width)
-    st.balloons()
+st.balloons()
