@@ -10,17 +10,13 @@ st.set_page_config(page_title="BANDORA LOAN APPROVAL WEBAPP", page_icon="random"
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
-    st.markdown(
-    f"""
-    <style>
-    .stApp {{
-        background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
-        background-size: cover
-    }}
-    </style>
-    """,
-    unsafe_allow_html=True
-    )
+        st.markdown(
+            f"""
+            <style>.stApp {{background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
+            background-size: cover}}
+            </style>"""
+            , unsafe_allow_html=True
+        )
 
 
 # app background
@@ -58,8 +54,8 @@ def create_input_Dataframe():
     return DF
 def Classifier():
     global result
-    input = create_input_Dataframe()
-    prediction = classifier_pipeline.predict(input)
+    inputs = create_input_Dataframe()
+    prediction = classifier_pipeline.predict(inputs)
     if prediction == 1:
         result = "Defaulter"
     if prediction == 0:
@@ -69,16 +65,16 @@ def Classifier():
 def default():
     d = Classifier()
     if d == 1:
-        default = 1
+        defaults = 1
     else:
-        default = 0
-    return default
+        defaults = 0
+    return defaults
 
 
 @st.experimental_memo
 def create_regression_input():
     regr_dict={
-        #NUM data
+        # NUM data
         "BidsPortfolioManager": BidsPortfolioManager,
         "BidsApi": BidsApi,
         "BidsManual": BidsManual,
@@ -104,7 +100,7 @@ def create_regression_input():
         "NoOfPreviousLoansBeforeLoan": NoOfPreviousLoansBeforeLoan,
         "AmountOfPreviousLoansBeforeLoan": AmountOfPreviousLoansbeforeloan,
         "PreviousEarlyRepaymentsCountBeforeLoan": PreviousEarlyRepaymentsCountBeforeLoan,
-        #cat
+        # cat
         "NewCreditCustomer": NewCreditCustomer,
         "VerificationType": VerificationType,
         "LanguageCode": LanguageCode,
@@ -118,23 +114,19 @@ def create_regression_input():
         "RecoveryStage": RecoveryStage,
         "Rating": Rating,
         "Restructured": Restructured,
-        "CreditScoreEsMicroL":CreditScoreEsMicroL,
-        "Default":Default
-        #numerical data
+        "CreditScoreEsMicroL": CreditScoreEsMicroL,
+        "Default": Default
+
 
     }
     DF_reg = pd.DataFrame(regr_dict, index=[0])
     return DF_reg
 
-
-Default = default()
-
-
 # regression model using
 def Regressor():
     inputs = create_regression_input()
     prediction = Regressor_pipeline.predict(inputs)
-    Result=pd.DataFrame({"EMI":None,"ELA":None,"ROI":None})
+    Result=pd.DataFrame({"EMI": 0, "ELA": 0, "ROI": 0})
     Result['EMI']=prediction[0]
     Result['ELA']=prediction[1]
     Result['ROI']=prediction[2]
@@ -155,23 +147,23 @@ op1 = st.button(label="Personal Details")
 if op1:
     st.subheader('Personal Background')
     EmploymentDurationCurrentEmployer = st.selectbox('EmploymentDurationCurrentEmployer', ("MoreThan5Years", "UpTo1Year", "UpTo5Years", "UpTo3Years", "UpTo4Years", "Other", "TrialPeriod"))
-    LanguageCode = st.selectbox('Language',
-                                ("estonia", "Finish", "spanish" , "other"))
-    HomeOwnershipType = st.selectbox('Home Ownership Type', ("homeless", "Owner", "other","Tenant_pre-furnished property", "Living with parents","Mortgage", "Tenant_unfurnished property", "other", "Joint ownership", "Joint tenant", "Council house", "Owner with encumbrance"))
+    LanguageCode = st.selectbox('Languagecode', ("estonia", "Finish", "spanish", "other"))
+    HomeOwnershipType = st.selectbox('Home Ownership Type', ("homeless", "Owner", "other", "Tenant_pre-furnished property", "Living with parents", "Mortgage", "Tenant_unfurnished property", "other", "Joint ownership", "Joint tenant", "Council house", "Owner with encumbrance"))
     Gender = st.selectbox('Gender', ("Male", "Woman", "Undefined"))
     Education = st.selectbox('Education', ("Basic education", "Primary education", "Vocational education", "Higher education", "other", "Secondary education"))
     MaritalStatus = st.selectbox('MaritalStatus', ("Married", "Cohabitant", "Single", "Divorced", "Widow", "other"))
-    IncomeTotal = st.number_input('Total Icome')
+    IncomeTotal = st.number_input('Total Income')
     LiabilitiesTotal = st.number_input('Total Liabilities')
     EmploymentStatus = st.selectbox('EmploymentStatus', ("Fully employed", "Self-employed_Entrepreneur_Retiree",
-                                                         "Unemployed_Partially employed"))
+                                                         "Unemployed_Partially employed")
+                                    )
     OccupationArea = st.selectbox('OccupationArea', ("Other", "Mining", "Processing", "Energy", "Utilities", "Construction",
-                                                     "Retail and wholesale","Transport and warehousing",
+                                                     "Retail and wholesale", "Transport and warehousing",
                                                      "Hospitality and catering", "Info and telecom", "Finance and insurance",
-                                                     "Real-estate", "Research", "Administrative"
-                                                    ,"Civil service & military", "Education", "Healthcare and social help",
+                                                     "Real-estate", "Research", "Administrative", "Civil service & military", "Education", "Healthcare and social help",
                                                      "Art and entertainment",
-                                                     "Agriculture,forestry and fishing"))
+                                                     "Agriculture,forestry and fishing")
+                                  )
     RefinanceLiabilities = st.number_input('Refinance Liabilities')
     Freecash = st.number_input('Free Cash')
     ExistingLiabilities = st.number_input('Existing Liabilities')
@@ -190,7 +182,7 @@ if op2:
     RecoveryStage = st.selectbox('RecoveryStage', ("Collection", "Recovery"))
     UseOfLoan = st.selectbox('UseOfLoan', ("other", "Home improvement", "Loan consolidation", "Vehicle", "Travel", "Business", "Education", "Any"))
     VerificationType = st.selectbox('VerificationType', ("Not set", "Income unverified", "Income unverified cross-referenced by phone",
-                                                         "Income verified","Income and expenses verified"))
+                                                         "Income verified", "Income and expenses verified"))
     CreditScoreEsMicroL = st.selectbox('CreditScoreEsMicroL',
                                        ("M", "M3", "M5", "M1", "M9", "M2", "M6", "M4", "M8", "M7", "M10"))
     NoOfPreviousLoansBeforeLoan = st.number_input('No Of Previous Loans Before Loan')
@@ -223,8 +215,9 @@ if opt5:
     st.subheader('Other')
     Rating = st.selectbox('Rating', ("A", "AA", "B", "C", "D", "E", "F", "HR"))
 
-st.header('Loan Application Status')
 if st.button(label="Check Status"):
+    Default = default()
+    st.header('Loan Application Status')
     with st.spinner('Analyzing the Provided Information ...'):
         time.sleep(5)
     result = Classifier()
