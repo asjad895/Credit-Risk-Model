@@ -4,6 +4,7 @@ import sklearn
 import base64
 import time
 import pickle
+from PIL import Image
 import urllib.request
 st.set_page_config(page_title="BANDORA LOAN APPROVAL WEBAPP", page_icon="random", layout="wide", initial_sidebar_state="expanded")
 
@@ -19,7 +20,8 @@ def add_bg_from_local(image_file):
 
 
 # app background
-add_bg_from_local('bckg.jpg')
+image=Image.open('bandora_logo.PNG')
+add_bg_from_local("bckg.jpg")
 
 classifier_pipeline = pickle.load(open('classifier_gboost_pipeline.pkl', 'rb'))
 
