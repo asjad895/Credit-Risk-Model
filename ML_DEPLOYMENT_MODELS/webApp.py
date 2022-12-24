@@ -231,7 +231,7 @@ if "emoji" not in st.session_state:
     st.session_state.emoji = "👈"
 
 emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
-
+Default = default()
 # if st.button(f"Check Status {st.session_state.emoji}", on_click=random_emoji):
 #     Default = default()
 #     st.header('Loan Application Status')
